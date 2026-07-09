@@ -1,0 +1,33 @@
+# Production profile — strict settings, all secrets from environment variables.
+
+spring:
+  ai:
+    vectorstore:
+      qdrant:
+        host: ${QDRANT_HOST}
+        port: ${QDRANT_PORT:6334}
+        use-tls: true
+        api-key: ${QDRANT_API_KEY}
+
+app:
+  security:
+    api-key: ${API_KEY}
+  aws:
+    api-call-attempt-timeout-seconds: 8
+    api-call-timeout-seconds: 25
+  rag:
+    min-score: 0.65
+    top-k: 5
+    max-context-chunks: 4
+    max-context-tokens: 6000
+
+management:
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+
+logging:
+  level:
+    root: WARN
+    com.cloudspring: INFO

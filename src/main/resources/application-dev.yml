@@ -1,0 +1,22 @@
+# Development profile — verbose logging, no API key required, Qdrant on localhost.
+
+spring:
+  ai:
+    vectorstore:
+      qdrant:
+        host: 65.2.187.104
+        port: 6334
+        use-tls: false
+        api-key:
+
+app:
+  security:
+    api-key:   # blank = auth disabled in dev
+  rag:
+    min-score: 0.20   # lower threshold useful during data ingestion testing
+
+logging:
+  level:
+    com.cloudspring: DEBUG
+    org.springframework.ai: DEBUG
+    software.amazon.awssdk.request: DEBUG

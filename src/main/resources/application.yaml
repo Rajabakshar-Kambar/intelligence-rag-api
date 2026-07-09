@@ -1,0 +1,155 @@
+spring:
+  application:
+    name: intelligence-rag-api
+  profiles:
+    active: dev
+
+  # Embedding model selection — Titan v2 via Bedrock
+  ai:
+    model:
+      embedding: bedrock-titan
+    bedrock:
+      aws:
+        region: ${AWS_REGION:ap-south-1}
+        # Do NOT set access-key / secret-key here.
+        # Use IAM role (EC2 instance profile, ECS task role) in production.
+        # For local development, configure ~/.aws/credentials or AWS_ACCESS_KEY_ID env var.
+      titan:
+        embedding:
+          model: ${AWS_EMBEDDING_MODEL_ID:amazon.titan-embed-text-v2:0}
+      converse:
+        chat:
+          options:
+            model: ${AWS_CHAT_MODEL_ID:anthropic.claude-3-haiku-20240307-v1:0}
+        vectorstore:
+      qdrant:
+        host: ${QDRANT_HOST:65.2.182.217}
+        port: ${QDRANT_PORT:6334}
+        collection-name: ${QDRANT_COLLECTION:company-documents}
+        #api-key: ${QDRANT_API_KEY:}
+        # Set to true and configure TLS certificates in production.
+        use-tls: ${QDRANT_USE_TLS:false}
+        initialize-schema: false
+
+  cache:
+    type: caffeine
+
+# ── Custom application properties ────────────────────────────────────────────
+
+app:
+  aws:
+    region: ${AWS_REGION:ap-south-1}
+    embedding-model-id: ${AWS_EMBEDDING_MODEL_ID:amazon.titan-embed-text-v2:0}
+    api-call-attempt-timeout-seconds: ${AWS_CALL_ATTEMPT_TIMEOUT:10}
+    api-call-timeout-seconds: ${AWS_CALL_TIMEOUT:30}
+
+  rag:
+    collection-name: ${QDRANT_COLLECTION:company-documents}
+    top-k: ${RAG_TOP_K:5}
+    min-score: ${RAG_MIN_SCORE:0.60}
+    fallback-top-k: ${RAG_FALLBACK_TOP_K:2}
+    max-context-chunks: ${RAG_MAX_CONTEXT_CHUNKS:4}
+    min-answerable-score: ${RAG_MIN_ANSWERABLE_SCORE:0.60}
+    max-context-tokens: ${RAG_MAX_CONTEXT_TOKENS:6000}
+
+  security:
+    api-key: ${API_KEY:}
+
+# ── Resilience4j ─────────────────────────────────────────────────────────────
+
+resilience4j:
+  retry:
+    instances:
+      bedrock-embedding:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - com.cloudspring.intelligence_rag_api.exception.EmbeddingException
+          - software.amazon.awssdk.core.exception.SdkClientException
+      bedrock-llm:
+        max-attempts: 3
+        wait-duration: 1000ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - com.cloudspring.intelligence_rag_api.exception.LlmException
+          - software.amazon.awssdk.core.exception.SdkClientException
+      qdrant:
+        max-attempts: 3
+        wait-duration: 300ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - com.cloudspring.intelligence_rag_api.exception.RetrievalException
+
+  circuitbreaker:
+    instances:
+      bedrock-embedding:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+      bedrock-llm:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+      qdrant:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 20s
+        permitted-number-of-calls-in-half-open-state: 3
+
+# ── Actuator ──────────────────────────────────────────────────────────────────
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,circuitbreakers,retries
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        rag.chat.duration: true
+      percentiles:
+        rag.chat.duration: 0.5, 0.95, 0.99
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+
+logging:
+  level:
+    root: INFO
+    com.cloudspring: INFO
+    # Suppress verbose Spring AI / AWS SDK debug output in all profiles.
+    # Enable selectively in dev via application-dev.yml.
+    org.springframework.ai: WARN
+    software.amazon.awssdk.request: WARN
+
+# ── OpenAPI ───────────────────────────────────────────────────────────────────
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  info:
+    title: CloudSpring Intelligence RAG API
+    version: 1.0.0
+    description: HR document retrieval-augmented generation powered by Amazon Bedrock and Qdrant
