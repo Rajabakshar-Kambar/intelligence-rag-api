@@ -71,6 +71,17 @@ jobs:
           aws ssm wait command-executed \
             --command-id "$(cat command_id.txt)" \
             --instance-id "$EC2_INSTANCE_ID"
+            
+      - name: Cache OWASP dependency-check database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: ${{ runner.os }}-depcheck-db-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-depcheck-db-
+            
+      - name: OWASP dependency check
+        run: ./mvnw org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DskipTestScope=true -DnvdApiKey=${{ secrets.NVD_API_KEY }} -B
 
 # Required repo secrets:
 #   AWS_DEPLOY_ROLE_ARN  — IAM role trusting token.actions.githubusercontent.com,
