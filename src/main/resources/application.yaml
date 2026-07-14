@@ -21,12 +21,12 @@ spring:
         chat:
           options:
             model: ${AWS_CHAT_MODEL_ID:anthropic.claude-3-haiku-20240307-v1:0}
-        vectorstore:
+    vectorstore:
       qdrant:
         host: ${QDRANT_HOST:65.2.182.217}
         port: ${QDRANT_PORT:6334}
         collection-name: ${QDRANT_COLLECTION:company-documents}
-        #api-key: ${QDRANT_API_KEY:}
+        api-key: ${QDRANT_API_KEY:}
         # Set to true and configure TLS certificates in production.
         use-tls: ${QDRANT_USE_TLS:false}
         initialize-schema: false
