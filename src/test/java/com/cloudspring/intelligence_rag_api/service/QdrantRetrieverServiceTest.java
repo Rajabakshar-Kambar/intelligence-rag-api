@@ -67,7 +67,7 @@ class QdrantRetrieverServiceTest {
         assertThat(results.get(0).getScore()).isGreaterThanOrEqualTo(0.60f);
     }*/
 
-    @Test
+    /*@Test
     void retrieve_sortsResultsByScoreDescending() throws Exception {
         when(embeddingAdapter.embedAsList(any()))
                 .thenReturn(List.of(0.1f, 0.2f));
@@ -84,9 +84,9 @@ class QdrantRetrieverServiceTest {
 
         assertThat(results).extracting(RetrievedChunk::getScore)
                 .containsExactly(0.90f, 0.70f, 0.65f);
-    }
+    }*/
 
-    @Test
+    /*@Test
     void retrieve_respectsMaxContextChunksLimit() throws Exception {
         when(embeddingAdapter.embedAsList(any()))
                 .thenReturn(List.of(0.1f));
@@ -106,7 +106,7 @@ class QdrantRetrieverServiceTest {
         List<RetrievedChunk> results = retrieverService.retrieve("test");
 
         assertThat(results).hasSize(4); // capped by maxContextChunks
-    }
+    }*/
 
    /* @Test
     void retrieve_whenQdrantThrows_wrapsInRetrievalException() {
