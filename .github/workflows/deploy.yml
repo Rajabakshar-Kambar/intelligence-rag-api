@@ -80,6 +80,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-depcheck-db-
             
+      - name: Cache OWASP dependency-check database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: ${{ runner.os }}-depcheck-db-v2-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-depcheck-db-v2-
+            
       - name: OWASP dependency check
         run: ./mvnw org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DskipTestScope=true -DnvdApiKey=${{ secrets.NVD_API_KEY }} -B
 
