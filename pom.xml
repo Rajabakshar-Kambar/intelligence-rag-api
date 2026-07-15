@@ -186,6 +186,15 @@
 					</includes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<configuration>
+					<suppressionFiles>
+						<suppressionFile>dependency-check-suppressions.xml</suppressionFile>
+					</suppressionFiles>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

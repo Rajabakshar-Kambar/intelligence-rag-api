@@ -35,7 +35,7 @@ jobs:
         run: ./mvnw clean verify -B
 
       - name: OWASP dependency check
-        run: ./mvnw org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DskipTestScope=true -DnvdApiKey=${{ secrets.NVD_API_KEY }} -DsuppressionFile=dependency-check-suppressions.xml -B
+        run: ./mvnw org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DskipTestScope=true -B
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
