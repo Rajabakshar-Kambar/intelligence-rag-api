@@ -20,7 +20,7 @@
 		<resilience4j.version>2.2.0</resilience4j.version>
 		<caffeine.version>3.1.8</caffeine.version>
 		<testcontainers.version>1.19.8</testcontainers.version>
-		<tomcat.version>11.0.23</tomcat.version>
+		<tomcat.version>11.0.24</tomcat.version>
 	</properties>
 
 	<dependencies>

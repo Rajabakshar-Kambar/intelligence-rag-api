@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <suppress>
+        <notes><![CDATA[
+            False positive: CVE-2026-54399 and CVE-2026-54428 affect
+            org.apache.httpcomponents.core5:httpcore5 (v5.x line) only.
+            This is the legacy org.apache.httpcomponents:httpcore (v4.x),
+            a different codebase. Confirmed against Apache's own CVE
+            scope and Debian security tracker. Re-evaluate if a v4-specific
+            advisory is ever published.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.httpcomponents/httpcore@.*$</packageUrl>
+        <cve>CVE-2026-54399</cve>
+        <cve>CVE-2026-54428</cve>
+    </suppress>
+</suppressions>
