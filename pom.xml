@@ -189,7 +189,9 @@
 			<plugin>
 				<groupId>org.owasp</groupId>
 				<artifactId>dependency-check-maven</artifactId>
+				<version>12.2.2</version>
 				<configuration>
+					<nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
 					<suppressionFiles>
 						<suppressionFile>dependency-check-suppressions.xml</suppressionFile>
 					</suppressionFiles>
