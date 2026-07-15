@@ -6,7 +6,7 @@ spring:
       qdrant:
         host: ${QDRANT_HOST}
         port: ${QDRANT_PORT:6334}
-        use-tls: true
+        use-tls: ${QDRANT_USE_TLS:false}
         api-key: ${QDRANT_API_KEY}
 
 app:

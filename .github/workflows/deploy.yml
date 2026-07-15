@@ -22,6 +22,7 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -34,7 +35,23 @@ jobs:
       - name: Build & test
         run: ./mvnw clean verify -B
 
+      # Cache MUST come before the check runs, or it does nothing.
+      - name: Cache OWASP dependency-check database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: ${{ runner.os }}-depcheck-db-v2-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-depcheck-db-v2-
+
+      # Single run. Key flows via NVD_API_KEY env var -> ${env.NVD_API_KEY}
+      # in pom.xml's plugin config -> plugin's nvdApiKey parameter. Do NOT
+      # also pass -DnvdApiKey= on the command line; that path is unreliable
+      # for this plugin (see prior debugging notes) and having both is
+      # redundant, not additive.
       - name: OWASP dependency check
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: ./mvnw org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DskipTestScope=true -B
 
       - name: Configure AWS credentials (OIDC)
@@ -71,32 +88,9 @@ jobs:
           aws ssm wait command-executed \
             --command-id "$(cat command_id.txt)" \
             --instance-id "$EC2_INSTANCE_ID"
-            
-      - name: Cache OWASP dependency-check database
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: ${{ runner.os }}-depcheck-db-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-depcheck-db-
-            
-      - name: Cache OWASP dependency-check database
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: ${{ runner.os }}-depcheck-db-v2-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-depcheck-db-v2-
-            
-      - name: OWASP dependency check
-        run: ./mvnw org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DskipTestScope=true -DnvdApiKey=${{ secrets.NVD_API_KEY }} -B
 
 # Required repo secrets:
 #   AWS_DEPLOY_ROLE_ARN  — IAM role trusting token.actions.githubusercontent.com,
-#                          scoped (via a repo:owner/repo:ref condition) to this
-#                          repository only, with ecr:* on the one repo and
-#                          ssm:SendCommand + ssm:GetCommandInvocation on the
-#                          one instance ARN. Not included here since it's
-#                          account-specific — see DEPLOYMENT_PLAN.md §7.4 for
-#                          the least-privilege pattern to follow when writing it.
+#                          scoped to this repository only.
 #   EC2_INSTANCE_ID       — e.g. i-0123456789abcdef0
+#   NVD_API_KEY            — from https://nvd.nist.gov/developers/request-an-api-key
