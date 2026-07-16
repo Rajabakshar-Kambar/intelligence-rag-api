@@ -84,6 +84,8 @@ jobs:
             --comment "Deploy rag-api $IMAGE_TAG" \
             --parameters commands="[\"cd /opt/rag-api && ./deploy.sh $IMAGE_TAG\"]" \
             --query "Command.CommandId" --output text > command_id.txt
+            
+          echo "Command ID: $(cat command_id.txt)" 
 
           aws ssm wait command-executed \
             --command-id "$(cat command_id.txt)" \
