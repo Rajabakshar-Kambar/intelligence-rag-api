@@ -17,6 +17,9 @@ RUN ./mvnw package -DskipTests -B
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
 FROM eclipse-temurin:21-jre-alpine AS runtime
 
+# Install curl for Docker health checks
+RUN apk add --no-cache curl
+
 # Security: run as non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser

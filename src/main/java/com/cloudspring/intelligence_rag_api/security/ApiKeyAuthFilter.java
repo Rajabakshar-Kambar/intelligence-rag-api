@@ -13,16 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Stateless API-key filter.
- *
- * <p>Expects the header {@code X-Api-Key: <key>}. On a valid key the request is
- * marked authenticated and the filter chain continues. On an invalid or missing
- * key a 401 is returned immediately.
- *
- * <p>Timing-safe comparison ({@code MessageDigest.isEqual}) prevents
- * timing-oracle attacks on the key value.
- */
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
     private static final String API_KEY_HEADER = "X-Api-Key";
@@ -31,6 +21,15 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
     public ApiKeyAuthFilter(String apiKey) {
         this.expectedKey = apiKey.getBytes();
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/actuator/health")
+                || path.startsWith("/actuator/info")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs");
     }
 
     @Override
