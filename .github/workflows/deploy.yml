@@ -89,7 +89,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}
           #ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          ECR_REGISTRY: 317706704947.dkr.ecr.ap-south-1.amazonaws.com/cloudspring-intelligence-rag-api
+          ECR_REGISTRY: "317706704947.dkr.ecr.ap-south-1.amazonaws.com"
         run: |
           aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
