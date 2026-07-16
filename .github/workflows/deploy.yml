@@ -74,16 +74,17 @@ jobs:
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
           
-      - name: Push deploy.sh to instance
+      - name: Push deploy files to instance
         run: |
           DEPLOY_SCRIPT_B64=$(base64 -w0 deploy.sh)
+          COMPOSE_B64=$(base64 -w0 docker-compose.prod.yml)
           aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --comment "Push deploy.sh" \
-            --parameters commands="[\"mkdir -p /opt/rag-api\", \"echo $DEPLOY_SCRIPT_B64 | base64 -d > /opt/rag-api/deploy.sh\", \"chmod +x /opt/rag-api/deploy.sh\"]" \
+            --comment "Push deploy files" \
+            --parameters commands="[\"mkdir -p /opt/rag-api\", \"echo $DEPLOY_SCRIPT_B64 | base64 -d > /opt/rag-api/deploy.sh\", \"echo $COMPOSE_B64 | base64 -d > /opt/rag-api/docker-compose.prod.yml\", \"chmod +x /opt/rag-api/deploy.sh\"]" \
             --query "Command.CommandId" --output text > push_id.txt
-          aws ssm wait command-executed --command-id "$(cat push_id.txt)" --instance-id "$EC2_INSTANCE_ID"
+            aws ssm wait command-executed --command-id "$(cat push_id.txt)" --instance-id "$EC2_INSTANCE_ID"
 
       - name: Deploy via SSM (no SSH)
         env:
