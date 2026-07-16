@@ -89,15 +89,13 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
           aws ssm send-command \
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy rag-api $IMAGE_TAG" \
-            --parameters commands="[\"cd /opt/rag-api && ./deploy.sh $IMAGE_TAG\"]" \
+            --parameters commands="[\"cd /opt/rag-api && export ECR_REGISTRY=$ECR_REGISTRY && export IMAGE_TAG=$IMAGE_TAG && ./deploy.sh $IMAGE_TAG\"]" \
             --query "Command.CommandId" --output text > command_id.txt
-            
-          echo "Command ID: $(cat command_id.txt)" 
-
           aws ssm wait command-executed \
             --command-id "$(cat command_id.txt)" \
             --instance-id "$EC2_INSTANCE_ID"
