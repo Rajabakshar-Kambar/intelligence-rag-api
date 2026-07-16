@@ -73,6 +73,17 @@ jobs:
                         -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          
+      - name: Push deploy.sh to instance
+        run: |
+          DEPLOY_SCRIPT_B64=$(base64 -w0 deploy.sh)
+          aws ssm send-command \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Push deploy.sh" \
+            --parameters commands="[\"mkdir -p /opt/rag-api\", \"echo $DEPLOY_SCRIPT_B64 | base64 -d > /opt/rag-api/deploy.sh\", \"chmod +x /opt/rag-api/deploy.sh\"]" \
+            --query "Command.CommandId" --output text > push_id.txt
+          aws ssm wait command-executed --command-id "$(cat push_id.txt)" --instance-id "$EC2_INSTANCE_ID"
 
       - name: Deploy via SSM (no SSH)
         env:
@@ -91,16 +102,7 @@ jobs:
             --command-id "$(cat command_id.txt)" \
             --instance-id "$EC2_INSTANCE_ID"
             
-      - name: Push deploy.sh to instance
-        run: |
-          DEPLOY_SCRIPT_B64=$(base64 -w0 deploy.sh)
-          aws ssm send-command \
-            --instance-ids "$EC2_INSTANCE_ID" \
-            --document-name "AWS-RunShellScript" \
-            --comment "Push deploy.sh" \
-            --parameters commands="[\"mkdir -p /opt/rag-api\", \"echo $DEPLOY_SCRIPT_B64 | base64 -d > /opt/rag-api/deploy.sh\", \"chmod +x /opt/rag-api/deploy.sh\"]" \
-            --query "Command.CommandId" --output text > push_id.txt
-          aws ssm wait command-executed --command-id "$(cat push_id.txt)" --instance-id "$EC2_INSTANCE_ID"
+      
 
 # Required repo secrets:
 #   AWS_DEPLOY_ROLE_ARN  — IAM role trusting token.actions.githubusercontent.com,
