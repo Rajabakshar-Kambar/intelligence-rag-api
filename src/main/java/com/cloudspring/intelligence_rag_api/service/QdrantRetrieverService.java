@@ -92,6 +92,10 @@ public class QdrantRetrieverService {
                 ragProperties.minScore(),
                 elapsed);
 
+        log.info("[Retriever] raw scores: {}", points.stream()
+                .map(r -> r.getScore())
+                .toList());
+
         if (log.isDebugEnabled()) {
             filtered.forEach(chunk ->
                     log.debug("[Retriever] doc={}, chunk={}, score={}, preview={}",
