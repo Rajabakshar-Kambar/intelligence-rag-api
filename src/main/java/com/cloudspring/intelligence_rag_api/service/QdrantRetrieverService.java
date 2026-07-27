@@ -129,7 +129,7 @@ public class QdrantRetrieverService {
                 .documentName(getString(payload, "documentName"))
                 .versionId(getString(payload, "versionId"))
                 .chunkIndex(getInteger(payload, "chunkIndex"))
-                .content(getString(payload, "content"))
+                .content(getString(payload, "doc_content"))
                 .score(point.getScore())
                 .build();
     }
