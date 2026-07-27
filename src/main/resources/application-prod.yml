@@ -16,7 +16,7 @@ app:
     api-call-attempt-timeout-seconds: 8
     api-call-timeout-seconds: 25
   rag:
-    min-score: 0.40
+    min-score: 0.00
     top-k: 5
     max-context-chunks: 4
     max-context-tokens: 6000
@@ -36,4 +36,4 @@ management:
 logging:
   level:
     root: WARN
-    com.cloudspring: INFO
+    com.cloudspring: DEBUG
