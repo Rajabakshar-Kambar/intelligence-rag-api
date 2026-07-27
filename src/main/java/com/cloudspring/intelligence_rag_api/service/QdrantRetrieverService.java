@@ -123,15 +123,39 @@ public class QdrantRetrieverService {
 
     // ── Mapping ────────────────────────────────────────────────────────────────
 
+    // Ordered by likelihood: Spring AI 2.x QdrantVectorStore default is "doc_content";
+    // "content" and "text" are covered in case content-field-name was ever customized
+    // or the collection predates an ingestion-side change.
+    private static final List<String> CONTENT_FIELD_CANDIDATES =
+            List.of("doc_content", "content", "text");
+
     private RetrievedChunk toRetrievedChunk(ScoredPoint point) {
         Map<String, JsonWithInt.Value> payload = point.getPayloadMap();
+
+        // TEMPORARY DIAGNOSTIC — remove once the correct content field name is confirmed
+        // and CONTENT_FIELD_CANDIDATES has been trimmed to just that one key.
+        log.info("[Retriever][DEBUG] payload keys={}", payload.keySet());
+
         return RetrievedChunk.builder()
                 .documentName(getString(payload, "documentName"))
                 .versionId(getString(payload, "versionId"))
                 .chunkIndex(getInteger(payload, "chunkIndex"))
-                .content(getString(payload, "doc_content"))
+                .content(getFirstNonBlank(payload, CONTENT_FIELD_CANDIDATES))
                 .score(point.getScore())
                 .build();
+    }
+
+    private String getFirstNonBlank(Map<String, JsonWithInt.Value> payload, List<String> keys) {
+        for (String key : keys) {
+            String value = getString(payload, key);
+            if (value != null && !value.isBlank()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("[Retriever] content resolved from payload key '{}'", key);
+                }
+                return value;
+            }
+        }
+        return null;
     }
 
     private String getString(Map<String, JsonWithInt.Value> payload, String key) {

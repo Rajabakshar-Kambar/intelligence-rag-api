@@ -4,7 +4,7 @@ spring:
   ai:
     vectorstore:
       qdrant:
-        host: '${QDRANT_HOST:65.2.187.104}'
+        host: '${QDRANT_HOST:43.204.148.16}'
         port: '${QDRANT_PORT:6334}'
         use-tls: false
         api-key:
