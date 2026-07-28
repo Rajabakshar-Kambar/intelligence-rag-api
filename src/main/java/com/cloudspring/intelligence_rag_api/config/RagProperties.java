@@ -18,7 +18,7 @@ public record RagProperties(
         @Min(1) @Max(20)
         int topK,
 
-        @DecimalMin("0.00") @DecimalMax("1.00")
+        @DecimalMin("0.10") @DecimalMax("1.00")
         float minScore,
 
         @Min(1) @Max(10)
